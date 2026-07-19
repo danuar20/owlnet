@@ -10,8 +10,8 @@ test('login screen can be rendered', function () {
     $response->assertStatus(200);
 });
 
-test('users can authenticate using the login screen', function () {
-    $user = User::factory()->create();
+test('super admin is redirected to the super admin dashboard', function () {
+    $user = User::factory()->superAdmin()->create();
 
     $response = $this->post('/login', [
         'email' => $user->email,
@@ -19,7 +19,31 @@ test('users can authenticate using the login screen', function () {
     ]);
 
     $this->assertAuthenticated();
-    $response->assertRedirect(route('dashboard', absolute: false));
+    $response->assertRedirect(route('dashboard.super-admin', absolute: false));
+});
+
+test('admin is redirected to the admin dashboard', function () {
+    $user = User::factory()->admin()->create();
+
+    $response = $this->post('/login', [
+        'email' => $user->email,
+        'password' => 'password',
+    ]);
+
+    $this->assertAuthenticated();
+    $response->assertRedirect(route('dashboard.admin', absolute: false));
+});
+
+test('operator is redirected to the operator dashboard', function () {
+    $user = User::factory()->operator()->create();
+
+    $response = $this->post('/login', [
+        'email' => $user->email,
+        'password' => 'password',
+    ]);
+
+    $this->assertAuthenticated();
+    $response->assertRedirect(route('dashboard.operator', absolute: false));
 });
 
 test('users can not authenticate with invalid password', function () {

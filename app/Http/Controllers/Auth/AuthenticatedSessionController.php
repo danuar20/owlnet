@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -30,7 +31,22 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        return redirect()->intended($this->redirectToDashboard($request));
+    }
+
+    /**
+     * Resolve the post-login dashboard route based on the user's role.
+     */
+    protected function redirectToDashboard(Request $request): string
+    {
+        /** @var User $user */
+        $user = $request->user();
+
+        return match (true) {
+            $user->isSuperAdmin() => route('dashboard.super-admin', absolute: false),
+            $user->isAdmin() => route('dashboard.admin', absolute: false),
+            default => route('dashboard.operator', absolute: false),
+        };
     }
 
     /**

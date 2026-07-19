@@ -7,7 +7,7 @@
 
         <title>{{ config('app.name', 'Hermes ISP Billing') }}</title>
 
-        <!-- Bootstrap 5 (CSS) -->
+        <!-- Bootstrap 5 -->
         <link
             href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
             rel="stylesheet"
@@ -15,29 +15,75 @@
             crossorigin="anonymous"
         >
 
-        <!-- Scripts -->
+        <!-- Application assets (compiled by Vite; optional project overrides) -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="bg-body-tertiary">
         <div id="app">
-            @include('layouts.navigation')
+            @auth
+                <nav class="navbar navbar-expand-md navbar-dark bg-dark">
+                    <div class="container">
+                        <a class="navbar-brand brand-logo" href="{{ route('dashboard') }}">
+                            {{ config('app.name', 'Hermes ISP Billing') }}
+                        </a>
+                        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#mainNav" aria-controls="mainNav"
+                                aria-expanded="false" aria-label="Toggle navigation">
+                            <span class="navbar-toggler-icon"></span>
+                        </button>
+                        <div class="collapse navbar-collapse" id="mainNav">
+                            <ul class="navbar-nav me-auto">
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->routeIs('dashboard.*') ? 'active' : '' }}"
+                                       href="{{ route('dashboard') }}">{{ __('Dashboard') }}</a>
+                                </li>
+                            </ul>
+                            <ul class="navbar-nav">
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle" href="#" role="button"
+                                       data-bs-toggle="dropdown" aria-expanded="false">
+                                        {{ Auth::user()->name }}
+                                        <span class="badge bg-secondary text-uppercase">
+                                            {{ Auth::user()->role->label() }}
+                                        </span>
+                                    </a>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li>
+                                            <a class="dropdown-item" href="{{ route('profile.edit') }}">
+                                                {{ __('Profile') }}
+                                            </a>
+                                        </li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <form method="POST" action="{{ route('logout') }}">
+                                                @csrf
+                                                <button type="submit" class="dropdown-item">
+                                                    {{ __('Log Out') }}
+                                                </button>
+                                            </form>
+                                        </li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </nav>
+            @endauth
 
             <main class="py-4">
                 @isset($header)
                     <div class="container">
-                        <div class="row">
-                            <div class="col-12">
-                                <h1 class="h3 mb-3">{{ $header }}</h1>
-                            </div>
-                        </div>
+                        <h1 class="h3 mb-3">{{ $header }}</h1>
                     </div>
                 @endisset
 
-                @yield('content', $slot ?? '')
+                <div class="container">
+                    @yield('content', $slot ?? '')
+                </div>
             </main>
         </div>
 
-        <!-- Bootstrap 5 (JS bundle) -->
+        <!-- Bootstrap 5 JS bundle (dropdowns/modals) -->
         <script
             src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
             integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"

@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Enums\UserRole;
 use App\Services\UserService;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 /**
  * Example controller demonstrating the project's layering convention.
@@ -25,10 +27,13 @@ class UserController extends Controller
     /**
      * Display a listing of users via the service layer.
      */
-    public function index(Request $request)
+    public function index(Request $request): View
     {
         $users = $this->userService->listUsers();
 
-        return view('users.index', compact('users'));
+        return view('users.index', [
+            'users' => $users,
+            'roles' => UserRole::cases(),
+        ]);
     }
 }

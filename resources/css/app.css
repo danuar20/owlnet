@@ -1,3 +1,19 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Hermes ISP Billing — application styles.
+ *
+ * Bootstrap 5 is loaded from the CDN in the layouts (see resources/views/layouts/app.blade.php),
+ * so this file holds only project-specific overrides. When running `npm run dev` / `npm run build`
+ * Vite still compiles this file (empty by default) and the Bootstrap JS bundle is provided via CDN.
+ */
+
+:root {
+    --hermes-primary: #0d6efd;
+}
+
+body {
+    min-height: 100vh;
+}
+
+.brand-logo {
+    font-weight: 700;
+    letter-spacing: 0.02em;
+}
