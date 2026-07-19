@@ -13,12 +13,6 @@ services:
             - .:/var/www
             - ./docker/php/opcache.ini:/usr/local/etc/php/conf.d/opcache.ini:ro
         environment:
-            - DB_CONNECTION=pgsql
-            - DB_HOST=postgres
-            - DB_PORT=5432
-            - DB_DATABASE=${DB_DATABASE:-hermes_isp}
-            - DB_USERNAME=${DB_USERNAME:-hermes}
-            - DB_PASSWORD=${DB_PASSWORD:-secret}
             - REDIS_HOST=redis
             - REDIS_PORT=6379
             - QUEUE_CONNECTION=redis
@@ -64,12 +58,6 @@ services:
             - .:/var/www
         environment:
             - APP_ENV=${APP_ENV:-production}
-            - DB_CONNECTION=pgsql
-            - DB_HOST=postgres
-            - DB_PORT=5432
-            - DB_DATABASE=${DB_DATABASE:-hermes_isp}
-            - DB_USERNAME=${DB_USERNAME:-hermes}
-            - DB_PASSWORD=${DB_PASSWORD:-secret}
             - REDIS_HOST=redis
             - QUEUE_CONNECTION=redis
         depends_on:
@@ -95,12 +83,6 @@ services:
             - .:/var/www
         environment:
             - APP_ENV=${APP_ENV:-production}
-            - DB_CONNECTION=pgsql
-            - DB_HOST=postgres
-            - DB_PORT=5432
-            - DB_DATABASE=${DB_DATABASE:-hermes_isp}
-            - DB_USERNAME=${DB_USERNAME:-hermes}
-            - DB_PASSWORD=${DB_PASSWORD:-secret}
             - REDIS_HOST=redis
         depends_on:
             postgres:

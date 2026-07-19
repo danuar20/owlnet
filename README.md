@@ -45,16 +45,24 @@ app/
 
 ## Project Structure
 
-```
+```text
 hermes-isp-billing/
 ├── app/
 │   ├── Console/Kernel.php        # Scheduler placeholder
 │   ├── Helpers/helpers.php       # Global helpers (human_bytes, mac_normalize, ...)
 │   ├── Http/Controllers/         # Thin controllers
+│   ├── Http/Middleware/RoleMiddleware.php  # super_admin / admin / operator
+│   ├── Models/
+│   │   ├── User.php              # Application staff (public.users)
+│   │   ├── Billing/            # billing.users, packages, subscriptions, payments, payment_logs
+│   │   └── Radius/             # radius.routers, mikrotik_profiles, admins, settings, activity_logs
+│   ├── Enums/UserRole.php      # Role enum
 │   ├── Jobs/ExampleJob.php       # Queueable job placeholder
 │   ├── Repositories/             # BaseRepository, RepositoryInterface, UserRepository
 │   ├── Services/                 # BaseService, UserService
 │   └── Providers/AppServiceProvider.php  # Repository bindings
+├── database/migrations/          # Laravel + billing/radius schema migrations
+├── docs/database/er-diagram.md # Mermaid ER diagram
 ├── docker/
 │   ├── nginx/default.conf        # Nginx virtual host
 │   └── php/opcache.ini           # OpCache tuning
@@ -67,6 +75,33 @@ hermes-isp-billing/
 ├── Pest.php                      # Pest bootstrap
 └── README.md
 ```
+
+## Database
+
+The application uses a single PostgreSQL database (`hermes_isp`) accessed through the
+`radius` login role (`radius` / `radius`). Inside it there are two dedicated
+schemas plus the default `public` schema:
+
+| Schema | Purpose | Tables |
+|---------|----------|--------|
+| `billing` | Business domain | `users`*, `packages`, `subscriptions`, `payments`, `payment_logs` |
+| `radius` | MikroTik / FreeRADIUS integration | `routers`, `mikrotik_profiles`, `admins`, `settings`, `activity_logs` |
+| `public` | Laravel framework + staff | `users` (application staff from the auth module) |
+
+> `*` `billing.users` are **customers/subscribers**, distinct from `public.users`
+> which are **application staff** (Super Admin / Admin / Operator).
+
+Conventions:
+
+- **UUID** primary and foreign keys (`gen_random_uuid()` default, no extension).
+- **Foreign keys** are enforced at the database level (CASCADE on owners, SET NULL on optionals).
+- **Indexes** on all foreign keys, status/active flags, unique business keys.
+- **Soft deletes** (`deleted_at`) on every mutable entity. `payment_logs` and
+  `activity_logs` are append-only audit tables and are NOT soft-deletable.
+- The `radius` role has `search_path = billing, radius, public`, so models reference
+  tables by bare name (e.g. `billing.users` is resolved automatically).
+
+See [docs/database/er-diagram.md](docs/database/er-diagram.md) for the full ER diagram.
 
 ## Getting Started (Docker)
 
