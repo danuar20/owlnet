@@ -1,0 +1,27 @@
+{
+    "preset": "laravel",
+    "rules": {
+        "declare_strict_types": true,
+        "ordered_class_elements": {
+            "order": [
+                "use_trait",
+                "constant",
+                "property",
+                "magic_method",
+                "method"
+            ]
+        },
+        "array_syntax": {
+            "syntax": "short"
+        },
+        "trailing_comma_in_multiline": true,
+        "blank_line_after_namespace": true,
+        "constant_case": {
+            "case": "lower"
+        },
+        "no_unused_imports": true,
+        "ordered_imports": {
+            "imports_order": ["class", "function", "const"]
+        }
+    }
+}

@@ -1,0 +1,38 @@
+*.log
+.DS_Store
+.env
+.env.backup
+.env.production
+.env.local
+.phpactor.json
+.phpunit.result.cache
+/.fleet
+/.idea
+/.nova
+/.phpunit.cache
+/.vscode
+/.zed
+/auth.json
+/node_modules
+/public/build
+/public/hot
+/public/storage
+/storage/*.key
+/storage/pail
+/vendor
+Homestead.json
+Homestead.yaml
+Thumbs.db
+
+# -------------------------------------------
+# Docker / local environment
+# -------------------------------------------
+/docker/php/opcache.local.ini
+*.code-workspace
+
+# -------------------------------------------
+# IDE helpers
+# -------------------------------------------
+_ide_helper.php
+_ide_helper_models.php
+.phpstorm.meta.php
