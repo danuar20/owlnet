@@ -78,28 +78,52 @@ hermes-isp-billing/
 
 ## Database
 
-The application uses a single PostgreSQL database (`hermes_isp`) accessed through the
-`radius` login role (`radius` / `radius`). Inside it there are two dedicated
-schemas plus the default `public` schema:
+The application connects to the **host PostgreSQL** `radius` database (the same
+Postgres instance that backs FreeRADIUS), as the `radius` login role. Because the
+app runs in Docker, it reaches the host via `host.docker.internal` (mapped through
+`extra_hosts: host-gateway`).
 
-| Schema | Purpose | Tables |
-|---------|----------|--------|
-| `billing` | Business domain | `users`*, `packages`, `subscriptions`, `payments`, `payment_logs` |
-| `radius` | MikroTik / FreeRADIUS integration | `routers`, `mikrotik_profiles`, `admins`, `settings`, `activity_logs` |
-| `public` | Laravel framework + staff | `users` (application staff from the auth module) |
+The `radius` database is shared with FreeRADIUS, so tables are isolated by schema
+and the app's `search_path` is `app, billing, radius` — **deliberately excluding
+`public`** so a stray `migrate:fresh` / `schema:wipe` can never touch FreeRADIUS.
 
-> `*` `billing.users` are **customers/subscribers**, distinct from `public.users`
-> which are **application staff** (Super Admin / Admin / Operator).
+| Schema | Owner | Purpose | Tables |
+|---------|-------|----------|--------|
+| `app` | radius | Laravel framework + staff | `users` (staff), `migrations`, `cache*`, `jobs*`, `sessions`, `password_reset_tokens` |
+| `billing` | radius | Business domain | `users`*, `packages`, `subscriptions`, `payments`, `payment_logs` |
+| `radius` | radius | MikroTik / FreeRADIUS integration | `routers`, `mikrotik_profiles`, `admins`, `settings`, `activity_logs` |
+| `public` | — | **FreeRADIUS (DO NOT TOUCH)** | `radacct`, `radcheck`, `radreply`, `nas`, `radusergroup`, … |
+| `portal` | — | Existing hotspot portal (untouched) | `vouchers`, `packages`, `payments`, `admins` |
+
+> `*` `billing.users` are **customers/subscribers**; `app.users` are **application
+> staff** (Super Admin / Admin / Operator). Both are distinct from FreeRADIUS accounts.
+
+Connection env (`.env`):
+
+```dotenv
+DB_CONNECTION=pgsql
+DB_HOST=host.docker.internal
+DB_PORT=5432
+DB_DATABASE=radius
+DB_USERNAME=radius
+DB_PASSWORD=radius
+DB_SEARCH_PATH=app,billing,radius
+```
+
+### Testing isolation (IMPORTANT)
+
+Tests use `RefreshDatabase`, which runs `migrate:fresh` (**drops all tables**).
+To guarantee this **never** touches the live `radius` database, the test suite
+points at a **separate, disposable** database on the Docker `postgres` container
+(`hermes_isp_testing`) via `.env.testing`. Never repoint tests at `radius`.
 
 Conventions:
 
 - **UUID** primary and foreign keys (`gen_random_uuid()` default, no extension).
-- **Foreign keys** are enforced at the database level (CASCADE on owners, SET NULL on optionals).
+- **Foreign keys** enforced at the DB level (CASCADE on owners, SET NULL on optionals).
 - **Indexes** on all foreign keys, status/active flags, unique business keys.
 - **Soft deletes** (`deleted_at`) on every mutable entity. `payment_logs` and
   `activity_logs` are append-only audit tables and are NOT soft-deletable.
-- The `radius` role has `search_path = billing, radius, public`, so models reference
-  tables by bare name (e.g. `billing.users` is resolved automatically).
 
 See [docs/database/er-diagram.md](docs/database/er-diagram.md) for the full ER diagram.
 

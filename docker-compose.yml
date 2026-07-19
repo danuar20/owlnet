@@ -18,6 +18,8 @@ services:
             - QUEUE_CONNECTION=redis
             - CACHE_STORE=redis
             - SESSION_DRIVER=redis
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
         depends_on:
             postgres:
                 condition: service_healthy
@@ -60,6 +62,8 @@ services:
             - APP_ENV=${APP_ENV:-production}
             - REDIS_HOST=redis
             - QUEUE_CONNECTION=redis
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
         depends_on:
             postgres:
                 condition: service_healthy
@@ -84,6 +88,8 @@ services:
         environment:
             - APP_ENV=${APP_ENV:-production}
             - REDIS_HOST=redis
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
         depends_on:
             postgres:
                 condition: service_healthy
