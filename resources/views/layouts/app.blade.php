@@ -37,6 +37,10 @@
                                     <a class="nav-link {{ request()->routeIs('dashboard.*') ? 'active' : '' }}"
                                        href="{{ route('dashboard') }}">{{ __('Dashboard') }}</a>
                                 </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->routeIs('routers.*') ? 'active' : '' }}"
+                                       href="{{ route('routers.index') }}">{{ __('Routers') }}</a>
+                                </li>
                             </ul>
                             <ul class="navbar-nav">
                                 <li class="nav-item dropdown">
@@ -89,5 +93,7 @@
             integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
             crossorigin="anonymous"
         ></script>
+
+        @stack('scripts')
     </body>
 </html>

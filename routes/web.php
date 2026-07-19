@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Radius\RouterController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -41,6 +42,17 @@ Route::get('/dashboard', function () {
 // Example route demonstrating the Service / Repository layering.
 Route::middleware(['auth', 'admin'])->group(function (): void {
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
+});
+
+// ---------------------------------------------------------------------------
+// Router (NAS) module — CRUD + reachability tests. Admin+ only.
+// ---------------------------------------------------------------------------
+Route::middleware(['auth', 'admin'])->group(function (): void {
+    Route::resource('routers', RouterController::class);
+    Route::post('/routers/{router}/ping', [RouterController::class, 'ping'])
+        ->name('routers.ping');
+    Route::post('/routers/{router}/test-connection', [RouterController::class, 'testConnection'])
+        ->name('routers.test-connection');
 });
 
 Route::middleware('auth')->group(function (): void {
