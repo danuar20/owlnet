@@ -46,6 +46,10 @@
                                        href="{{ route('packages.index') }}">{{ __('Packages') }}</a>
                                 </li>
                                 <li class="nav-item">
+                                    <a class="nav-link {{ request()->routeIs('subscriptions.*') ? 'active' : '' }}"
+                                       href="{{ route('subscriptions.index') }}">{{ __('Subscriptions') }}</a>
+                                </li>
+                                <li class="nav-item">
                                     <a class="nav-link {{ request()->routeIs('radius-profiles.*') ? 'active' : '' }}"
                                        href="{{ route('radius-profiles.index') }}">{{ __('Radius Profiles') }}</a>
                                 </li>

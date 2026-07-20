@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Http\Controllers\Billing\PackageController;
+use App\Http\Controllers\Billing\SubscriptionController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Radius\RadiusProfileController;
@@ -69,6 +70,21 @@ Route::middleware(['auth', 'admin'])->group(function (): void {
 // ---------------------------------------------------------------------------
 Route::middleware(['auth', 'admin'])->group(function (): void {
     Route::resource('radius-profiles', RadiusProfileController::class);
+});
+
+// ---------------------------------------------------------------------------
+// Subscriptions (lifecycle: activate / suspend / renew / expire / cancel)
+// ---------------------------------------------------------------------------
+Route::middleware(['auth', 'admin'])->group(function (): void {
+    Route::resource('subscriptions', SubscriptionController::class);
+    Route::post('/subscriptions/{subscription}/activate', [SubscriptionController::class, 'activate'])
+        ->name('subscriptions.activate');
+    Route::post('/subscriptions/{subscription}/suspend', [SubscriptionController::class, 'suspend'])
+        ->name('subscriptions.suspend');
+    Route::post('/subscriptions/{subscription}/renew', [SubscriptionController::class, 'renew'])
+        ->name('subscriptions.renew');
+    Route::post('/subscriptions/{subscription}/expire', [SubscriptionController::class, 'expire'])
+        ->name('subscriptions.expire');
 });
 
 Route::middleware('auth')->group(function (): void {
