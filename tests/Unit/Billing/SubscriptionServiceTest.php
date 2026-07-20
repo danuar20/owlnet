@@ -3,12 +3,16 @@
 declare(strict_types=1);
 
 use App\Enums\SubscriptionStatus;
+use App\Jobs\ProvisionRadiusJob;
 use App\Models\Billing\Package;
 use App\Models\Billing\Subscription;
 use App\Models\Billing\User;
+use App\Models\Radius\RadiusUser;
 use App\Repositories\Billing\SubscriptionRepository;
+use App\Services\RadiusService;
 use App\Services\SubscriptionService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Queue;
 
 uses(RefreshDatabase::class);
 
@@ -135,4 +139,42 @@ it('keeps a provided username instead of auto-generating', function (): void {
     ]);
 
     expect($sub->username)->toBe('custom-login');
+});
+
+it('dispatches the RADIUS provisioning job on create', function (): void {
+    Queue::fake();
+    $user = User::factory()->create();
+    $package = Package::factory()->create();
+
+    $sub = $this->service->create([
+        'user_id' => $user->id,
+        'package_id' => $package->id,
+    ]);
+
+    Queue::assertPushed(ProvisionRadiusJob::class, function ($job) use ($sub) {
+        return $job->username === $sub->username && $job->password === $sub->username;
+    });
+});
+
+it('writes the user into radcheck when the provisioning job runs', function (): void {
+    $user = User::factory()->create();
+    $package = Package::factory()->create();
+
+    $sub = $this->service->create([
+        'user_id' => $user->id,
+        'package_id' => $package->id,
+    ]);
+
+    // Run the queued job synchronously and assert radcheck now has the user.
+    Queue::fake();
+    $job = new ProvisionRadiusJob(
+        $sub->id,
+        $sub->username,
+        $sub->username,
+        $sub->package?->radius_profile,
+        $sub->package?->rateLimit()
+    );
+    $job->handle(app(RadiusService::class));
+
+    expect(RadiusUser::where('username', $sub->username)->exists())->toBeTrue();
 });

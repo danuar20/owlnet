@@ -58,7 +58,20 @@ class SubscriptionService
             $data['password'] = $data['username'];
         }
 
-        return $this->subscriptions->create($data);
+        $subscription = $this->subscriptions->create($data);
+
+        // Provision RADIUS immediately so the user exists in radcheck on creation.
+        if ($subscription->username !== null && $subscription->username !== '') {
+            ProvisionRadiusJob::dispatch(
+                $subscription->id,
+                $subscription->username,
+                $subscription->password ?? $subscription->username,
+                $subscription->package?->radius_profile,
+                $subscription->package?->rateLimit()
+            );
+        }
+
+        return $subscription;
     }
 
     /**
