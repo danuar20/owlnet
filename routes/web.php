@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Http\Controllers\Billing\PackageController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Radius\RadiusProfileController;
 use App\Http\Controllers\Radius\RouterController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -61,6 +62,13 @@ Route::middleware(['auth', 'admin'])->group(function (): void {
 // ---------------------------------------------------------------------------
 Route::middleware(['auth', 'admin'])->group(function (): void {
     Route::resource('packages', PackageController::class);
+});
+
+// ---------------------------------------------------------------------------
+// FreeRADIUS Profiles (radgroupreply groups) — manage from the app. Admin+.
+// ---------------------------------------------------------------------------
+Route::middleware(['auth', 'admin'])->group(function (): void {
+    Route::resource('radius-profiles', RadiusProfileController::class);
 });
 
 Route::middleware('auth')->group(function (): void {

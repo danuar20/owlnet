@@ -50,10 +50,15 @@
 
     <div class="col-md-6">
         <label for="radius_profile" class="form-label">Radius Profile</label>
-        <input type="text" class="form-control @error('radius_profile') is-invalid @enderror"
-               id="radius_profile" name="radius_profile" value="{{ old('radius_profile', $package->radius_profile) }}"
-               placeholder="FreeRADIUS group name (e.g. profile-10m)">
+        <select class="form-select @error('radius_profile') is-invalid @enderror"
+                id="radius_profile" name="radius_profile">
+            <option value="">— none —</option>
+            @foreach ($profileOptions ?? [] as $opt)
+                <option value="{{ $opt }}" @selected(old('radius_profile', $package->radius_profile) === $opt)>{{ $opt }}</option>
+            @endforeach
+        </select>
         @error('radius_profile') <div class="invalid-feedback">{{ $message }}</div> @enderror
+        <div class="form-text">FreeRADIUS group this plan's subscribers inherit. Manage in Radius Profiles.</div>
     </div>
 
     <div class="col-12">

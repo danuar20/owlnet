@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models\Billing;
 
+use App\Models\Radius\RadiusGroupReply;
 use Database\Factories\Billing\PackageFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -65,6 +66,21 @@ class Package extends Model
     public function subscriptions(): HasMany
     {
         return $this->hasMany(Subscription::class, 'package_id');
+    }
+
+    /**
+     * Distinct FreeRADIUS group names (profiles) for the radius_profile dropdown.
+     *
+     * @return array<int, string>
+     */
+    public static function radiusProfileOptions(): array
+    {
+        return RadiusGroupReply::query()
+            ->select('groupname')
+            ->distinct()
+            ->orderBy('groupname')
+            ->pluck('groupname')
+            ->all();
     }
 
     /** @param Builder<Package> $query */

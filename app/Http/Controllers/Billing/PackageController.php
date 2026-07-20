@@ -33,6 +33,7 @@ class PackageController extends Controller
     {
         return view('billing.packages.create', [
             'package' => new Package,
+            'profileOptions' => Package::radiusProfileOptions(),
         ]);
     }
 
@@ -52,7 +53,10 @@ class PackageController extends Controller
 
     public function edit(Package $package): View
     {
-        return view('billing.packages.edit', ['package' => $package]);
+        return view('billing.packages.edit', [
+            'package' => $package,
+            'profileOptions' => Package::radiusProfileOptions(),
+        ]);
     }
 
     public function update(PackageRequest $request, Package $package): RedirectResponse
