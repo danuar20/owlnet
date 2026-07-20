@@ -88,8 +88,10 @@ class SubscriptionService
     }
 
     /**
-     * Delete a subscription (soft delete) and remove its FreeRADIUS user so the
-     * credential can no longer authenticate.
+     * Delete a subscription permanently (hard delete) and remove its FreeRADIUS
+     * user so the credential can no longer authenticate. A hard delete removes
+     * the row from billing.subscriptions (and its history via FK cascade),
+     * so it no longer appears in the table after deletion.
      */
     public function delete(string $id): bool
     {
@@ -99,7 +101,7 @@ class SubscriptionService
             SuspendRadiusJob::dispatch($subscription->username);
         }
 
-        return $this->subscriptions->delete($id);
+        return $subscription->forceDelete();
     }
 
     /**

@@ -185,13 +185,12 @@ it('provisions radcheck on activate with password equal to username', function (
         ->where('value', $activated->username)->exists())->toBeTrue();
 });
 
-it('soft-deletes a subscription and dispatches the RADIUS cleanup job', function (): void {
+it('hard-deletes a subscription and dispatches the RADIUS cleanup job', function (): void {
     Queue::fake();
     $sub = Subscription::factory()->pending()->create(['username' => 'to-delete-1']);
 
     $this->service->delete($sub->id);
 
-    expect(Subscription::find($sub->id))->toBeNull()
-        ->and(Subscription::withTrashed()->find($sub->id))->not->toBeNull();
+    expect(Subscription::withTrashed()->find($sub->id))->toBeNull();
     Queue::assertPushed(SuspendRadiusJob::class, fn ($job) => $job->username === 'to-delete-1');
 });
