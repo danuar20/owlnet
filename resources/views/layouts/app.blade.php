@@ -50,6 +50,10 @@
                                        href="{{ route('subscriptions.index') }}">{{ __('Subscriptions') }}</a>
                                 </li>
                                 <li class="nav-item">
+                                    <a class="nav-link {{ request()->routeIs('invoices.*') ? 'active' : '' }}"
+                                       href="{{ route('invoices.index') }}">{{ __('Invoices') }}</a>
+                                </li>
+                                <li class="nav-item">
                                     <a class="nav-link {{ request()->routeIs('radius-profiles.*') ? 'active' : '' }}"
                                        href="{{ route('radius-profiles.index') }}">{{ __('Radius Profiles') }}</a>
                                 </li>

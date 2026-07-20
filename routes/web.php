@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Billing\InvoiceController;
 use App\Http\Controllers\Billing\PackageController;
 use App\Http\Controllers\Billing\SubscriptionController;
 use App\Http\Controllers\DashboardController;
@@ -85,6 +86,18 @@ Route::middleware(['auth', 'admin'])->group(function (): void {
         ->name('subscriptions.renew');
     Route::post('/subscriptions/{subscription}/expire', [SubscriptionController::class, 'expire'])
         ->name('subscriptions.expire');
+});
+
+// ---------------------------------------------------------------------------
+// Invoices / Billing (line items, tax, discount, promo, PDF)
+// ---------------------------------------------------------------------------
+Route::middleware(['auth', 'admin'])->group(function (): void {
+    Route::resource('invoices', InvoiceController::class);
+    Route::post('/invoices/{invoice}/send', [InvoiceController::class, 'send'])->name('invoices.send');
+    Route::post('/invoices/{invoice}/pay', [InvoiceController::class, 'pay'])->name('invoices.pay');
+    Route::post('/invoices/{invoice}/void', [InvoiceController::class, 'void'])->name('invoices.void');
+    Route::get('/invoices/{invoice}/pdf', [InvoiceController::class, 'download'])->name('invoices.pdf');
+    Route::get('/invoices/{invoice}/preview', [InvoiceController::class, 'stream'])->name('invoices.preview');
 });
 
 Route::middleware('auth')->group(function (): void {
