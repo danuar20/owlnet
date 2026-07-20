@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models\Billing;
 
+use Database\Factories\Billing\PackageFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -21,6 +22,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property int $duration_days
  * @property string|null $speed_download
  * @property string|null $speed_upload
+ * @property string|null $radius_profile
  * @property string|null $description
  * @property bool $is_active
  */
@@ -43,6 +45,7 @@ class Package extends Model
         'duration_days',
         'speed_download',
         'speed_upload',
+        'radius_profile',
         'description',
         'is_active',
     ];
@@ -51,6 +54,11 @@ class Package extends Model
         'price' => 'decimal:2',
         'duration_days' => 'integer',
         'is_active' => 'boolean',
+    ];
+
+    protected $attributes = [
+        'is_active' => true,
+        'duration_days' => 30,
     ];
 
     /** @return HasMany<Subscription> */
@@ -63,5 +71,38 @@ class Package extends Model
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('is_active', true);
+    }
+
+    /**
+     * Human status label.
+     */
+    public function statusLabel(): string
+    {
+        return $this->is_active ? 'Active' : 'Inactive';
+    }
+
+    /**
+     * Bootstrap badge colour for the status.
+     */
+    public function statusColor(): string
+    {
+        return $this->is_active ? 'success' : 'secondary';
+    }
+
+    /**
+     * "10M/10M" rate-limit string (MikroTik style) from up/down speeds.
+     */
+    public function rateLimit(): ?string
+    {
+        if ($this->speed_upload === null && $this->speed_download === null) {
+            return null;
+        }
+
+        return sprintf('%s/%s', $this->speed_upload ?? '0', $this->speed_download ?? '0');
+    }
+
+    protected static function newFactory(): PackageFactory
+    {
+        return PackageFactory::new();
     }
 }

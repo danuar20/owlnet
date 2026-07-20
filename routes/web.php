@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Billing\PackageController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Radius\RouterController;
@@ -53,6 +54,13 @@ Route::middleware(['auth', 'admin'])->group(function (): void {
         ->name('routers.ping');
     Route::post('/routers/{router}/test-connection', [RouterController::class, 'testConnection'])
         ->name('routers.test-connection');
+});
+
+// ---------------------------------------------------------------------------
+// Internet Package (plan) module — CRUD. Admin+ only.
+// ---------------------------------------------------------------------------
+Route::middleware(['auth', 'admin'])->group(function (): void {
+    Route::resource('packages', PackageController::class);
 });
 
 Route::middleware('auth')->group(function (): void {

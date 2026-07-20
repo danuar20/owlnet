@@ -41,6 +41,10 @@
                                     <a class="nav-link {{ request()->routeIs('routers.*') ? 'active' : '' }}"
                                        href="{{ route('routers.index') }}">{{ __('Routers') }}</a>
                                 </li>
+                                <li class="nav-item">
+                                    <a class="nav-link {{ request()->routeIs('packages.*') ? 'active' : '' }}"
+                                       href="{{ route('packages.index') }}">{{ __('Packages') }}</a>
+                                </li>
                             </ul>
                             <ul class="navbar-nav">
                                 <li class="nav-item dropdown">
