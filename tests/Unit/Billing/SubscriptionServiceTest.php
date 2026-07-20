@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Enums\SubscriptionStatus;
 use App\Jobs\ProvisionRadiusJob;
+use App\Jobs\SuspendRadiusJob;
 use App\Models\Billing\Package;
 use App\Models\Billing\Subscription;
 use App\Models\Billing\User;
@@ -182,4 +183,15 @@ it('provisions radcheck on activate with password equal to username', function (
 
     expect(RadiusUser::where('username', $activated->username)
         ->where('value', $activated->username)->exists())->toBeTrue();
+});
+
+it('soft-deletes a subscription and dispatches the RADIUS cleanup job', function (): void {
+    Queue::fake();
+    $sub = Subscription::factory()->pending()->create(['username' => 'to-delete-1']);
+
+    $this->service->delete($sub->id);
+
+    expect(Subscription::find($sub->id))->toBeNull()
+        ->and(Subscription::withTrashed()->find($sub->id))->not->toBeNull();
+    Queue::assertPushed(SuspendRadiusJob::class, fn ($job) => $job->username === 'to-delete-1');
 });

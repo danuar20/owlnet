@@ -35,6 +35,13 @@
                             <td>{{ $sub->expired_at ? $sub->expired_at->format('Y-m-d') : '—' }}</td>
                             <td class="text-end text-nowrap">
                                 <a href="{{ route('subscriptions.show', $sub) }}" class="btn btn-sm btn-outline-secondary">View</a>
+                                @can('super_admin')
+                                    <form action="{{ route('subscriptions.destroy', $sub) }}" method="POST" class="d-inline"
+                                          onsubmit="return confirm('Delete this subscription?');">
+                                        @csrf @method('DELETE')
+                                        <button class="btn btn-sm btn-outline-danger">Delete</button>
+                                    </form>
+                                @endcan
                             </td>
                         </tr>
                     @empty

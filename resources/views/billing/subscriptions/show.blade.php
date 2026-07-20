@@ -9,6 +9,13 @@
         <div>
             <a href="{{ route('subscriptions.index') }}" class="btn btn-outline-secondary">Back</a>
             <a href="{{ route('subscriptions.edit', $subscription) }}" class="btn btn-primary">Edit</a>
+            @can('super_admin')
+                <form action="{{ route('subscriptions.destroy', $subscription) }}" method="POST" class="d-inline"
+                      onsubmit="return confirm('Delete this subscription permanently? This also removes the RADIUS user.');">
+                    @csrf @method('DELETE')
+                    <button class="btn btn-danger">Delete</button>
+                </form>
+            @endcan
         </div>
     </div>
 

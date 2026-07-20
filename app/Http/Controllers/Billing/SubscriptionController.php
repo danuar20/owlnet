@@ -12,6 +12,7 @@ use App\Models\Billing\User as BillingUser;
 use App\Models\Radius\Router;
 use App\Services\SubscriptionService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 
 /**
@@ -78,6 +79,8 @@ class SubscriptionController extends Controller
 
     public function destroy(Subscription $subscription): RedirectResponse
     {
+        Gate::authorize('super_admin');
+
         $this->subscription->delete($subscription->id);
 
         return redirect()

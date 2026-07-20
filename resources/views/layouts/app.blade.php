@@ -53,6 +53,12 @@
                                     <a class="nav-link {{ request()->routeIs('invoices.*') ? 'active' : '' }}"
                                        href="{{ route('invoices.index') }}">{{ __('Invoices') }}</a>
                                 </li>
+                                @can('super_admin')
+                                    <li class="nav-item">
+                                        <a class="nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}"
+                                           href="{{ route('users.index') }}">{{ __('Users') }}</a>
+                                    </li>
+                                @endcan
                                 <li class="nav-item">
                                     <a class="nav-link {{ request()->routeIs('radius-profiles.*') ? 'active' : '' }}"
                                        href="{{ route('radius-profiles.index') }}">{{ __('Radius Profiles') }}</a>

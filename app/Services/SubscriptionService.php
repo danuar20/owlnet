@@ -88,6 +88,21 @@ class SubscriptionService
     }
 
     /**
+     * Delete a subscription (soft delete) and remove its FreeRADIUS user so the
+     * credential can no longer authenticate.
+     */
+    public function delete(string $id): bool
+    {
+        $subscription = $this->subscriptions->findOrFail($id);
+
+        if ($subscription->username !== null && $subscription->username !== '') {
+            SuspendRadiusJob::dispatch($subscription->username);
+        }
+
+        return $this->subscriptions->delete($id);
+    }
+
+    /**
      * Activate a subscription: provision RADIUS, set started_at and expiry,
      * and dispatch the provisioning job. Records history.
      *

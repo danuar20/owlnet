@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Models\User;
 use App\Repositories\Radius\RadiusAuthRepository;
 use App\Repositories\Radius\RadiusAuthRepositoryInterface;
 use App\Repositories\RepositoryInterface;
 use App\Repositories\UserRepository;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -30,6 +32,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        Gate::define('super_admin', static function ($user): bool {
+            return $user instanceof User && $user->isSuperAdmin();
+        });
     }
 }

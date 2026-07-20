@@ -5,35 +5,107 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Enums\UserRole;
+use App\Http\Requests\UserRequest;
+use App\Models\User;
 use App\Services\UserService;
-use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 
 /**
- * Example controller demonstrating the project's layering convention.
- *
- * Business logic lives in the service layer; the controller only validates
- * the request and delegates to a service. No Eloquent queries here.
+ * Superadmin-only management of staff users (create / edit / delete) and roles.
  */
 class UserController extends Controller
 {
-    /**
-     * Create the controller with its required service dependency.
-     */
     public function __construct(
         private readonly UserService $userService
     ) {}
 
     /**
-     * Display a listing of users via the service layer.
+     * List all staff users with their roles.
      */
-    public function index(Request $request): View
+    public function index(): View
     {
-        $users = $this->userService->listUsers();
+        Gate::authorize('super_admin');
 
         return view('users.index', [
-            'users' => $users,
+            'users' => $this->userService->listUsers(),
             'roles' => UserRole::cases(),
         ]);
+    }
+
+    /**
+     * Show the create-user form.
+     */
+    public function create(): View
+    {
+        Gate::authorize('super_admin');
+
+        return view('users.create', [
+            'user' => new User,
+            'roles' => UserRole::cases(),
+        ]);
+    }
+
+    /**
+     * Persist a new staff user.
+     */
+    public function store(UserRequest $request): RedirectResponse
+    {
+        Gate::authorize('super_admin');
+
+        $user = $this->userService->createUser($request->validated());
+
+        return redirect()
+            ->route('users.index')
+            ->with('status', "User \"{$user->name}\" created.");
+    }
+
+    /**
+     * Show the edit-user form.
+     */
+    public function edit(User $user): View
+    {
+        Gate::authorize('super_admin');
+
+        return view('users.edit', [
+            'user' => $user,
+            'roles' => UserRole::cases(),
+        ]);
+    }
+
+    /**
+     * Update an existing staff user (role / password).
+     */
+    public function update(UserRequest $request, User $user): RedirectResponse
+    {
+        Gate::authorize('super_admin');
+
+        $this->userService->updateUser($user->id, $request->validated());
+
+        return redirect()
+            ->route('users.index')
+            ->with('status', "User \"{$user->name}\" updated.");
+    }
+
+    /**
+     * Delete a staff user. A user may not delete themselves.
+     */
+    public function destroy(User $user): RedirectResponse
+    {
+        Gate::authorize('super_admin');
+
+        if ((string) $user->id === (string) auth()->id()) {
+            return redirect()
+                ->route('users.index')
+                ->with('error', 'You cannot delete your own account.');
+        }
+
+        $name = $user->name;
+        $this->userService->deleteUser($user->id);
+
+        return redirect()
+            ->route('users.index')
+            ->with('status', "User \"{$name}\" deleted.");
     }
 }

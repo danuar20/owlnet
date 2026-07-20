@@ -43,9 +43,11 @@ Route::get('/dashboard', function () {
     });
 })->middleware(['auth', 'verified'])->name('dashboard');
 
-// Example route demonstrating the Service / Repository layering.
-Route::middleware(['auth', 'admin'])->group(function (): void {
-    Route::get('/users', [UserController::class, 'index'])->name('users.index');
+// ---------------------------------------------------------------------------
+// Staff User & Role management (Superadmin only)
+// ---------------------------------------------------------------------------
+Route::middleware(['auth', 'super_admin'])->group(function (): void {
+    Route::resource('users', UserController::class)->except(['show']);
 });
 
 // ---------------------------------------------------------------------------
