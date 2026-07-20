@@ -22,7 +22,10 @@
         <select class="form-select @error('package_id') is-invalid @enderror" id="package_id" name="package_id" required>
             <option value="">— select —</option>
             @foreach ($packages as $p)
-                <option value="{{ $p->id }}" @selected(old('package_id', $subscription->package_id) === $p->id)>{{ $p->name }} ({{ $p->duration_days }}d)</option>
+                <option value="{{ $p->id }}"
+                        data-price="{{ $p->price }}"
+                        data-duration="{{ $p->duration_days }}"
+                        @selected(old('package_id', $subscription->package_id) === $p->id)>{{ $p->name }} ({{ $p->duration_days }}d)</option>
             @endforeach
         </select>
         @error('package_id') <div class="invalid-feedback">{{ $message }}</div> @enderror
@@ -43,7 +46,8 @@
         <label for="username" class="form-label">RADIUS Username</label>
         <input type="text" class="form-control @error('username') is-invalid @enderror"
                id="username" name="username" value="{{ old('username', $subscription->username) }}"
-               placeholder="PPPoE / Hotspot login">
+               placeholder="auto-generated if left empty">
+        <small class="text-muted">Left empty → auto-generated (e.g. owl-7F3K9X).</small>
         @error('username') <div class="invalid-feedback">{{ $message }}</div> @enderror
     </div>
 
@@ -73,3 +77,38 @@
         <textarea class="form-control" id="remarks" name="remarks" rows="2">{{ old('remarks', $subscription->remarks) }}</textarea>
     </div>
 </div>
+
+@push('scripts')
+<script>
+    (function () {
+        const pkg = document.getElementById('package_id');
+        const price = document.getElementById('price');
+        const start = document.getElementById('started_at');
+        const end = document.getElementById('expired_at');
+
+        function toLocalInput(date) {
+            const pad = (n) => String(n).padStart(2, '0');
+            return date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate())
+                + 'T' + pad(date.getHours()) + ':' + pad(date.getMinutes());
+        }
+
+        pkg.addEventListener('change', function () {
+            const opt = pkg.options[pkg.selectedIndex];
+            const p = parseFloat(opt.getAttribute('data-price') || '');
+            const dur = parseInt(opt.getAttribute('data-duration') || '0', 10);
+
+            if (! isNaN(p)) {
+                price.value = p;
+            }
+            if (dur > 0) {
+                const now = new Date();
+                const exp = new Date(now.getTime() + dur * 24 * 60 * 60 * 1000);
+                if (! start.value) {
+                    start.value = toLocalInput(now);
+                }
+                end.value = toLocalInput(exp);
+            }
+        });
+    })();
+</script>
+@endpush

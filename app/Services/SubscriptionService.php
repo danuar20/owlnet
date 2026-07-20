@@ -49,7 +49,23 @@ class SubscriptionService
      */
     public function create(array $data): Subscription
     {
+        if (empty($data['username'])) {
+            $data['username'] = $this->generateUniqueUsername();
+        }
+
         return $this->subscriptions->create($data);
+    }
+
+    /**
+     * Generate a unique RADIUS username (combined text + number), e.g. "owl-7F3K9X".
+     */
+    public function generateUniqueUsername(): string
+    {
+        do {
+            $username = 'owl-'.Str::upper(Str::random(6));
+        } while (Subscription::where('username', $username)->exists());
+
+        return $username;
     }
 
     /**

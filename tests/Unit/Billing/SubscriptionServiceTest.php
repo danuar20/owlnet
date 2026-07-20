@@ -3,7 +3,9 @@
 declare(strict_types=1);
 
 use App\Enums\SubscriptionStatus;
+use App\Models\Billing\Package;
 use App\Models\Billing\Subscription;
+use App\Models\Billing\User;
 use App\Repositories\Billing\SubscriptionRepository;
 use App\Services\SubscriptionService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -105,4 +107,30 @@ it('provides a history collection', function (): void {
 
     expect($this->service->history($sub))->toHaveCount(1)
         ->and($this->service->history($sub)->first()->action)->toBe('suspend');
+});
+
+it('auto-generates a unique radius username when none is provided', function (): void {
+    $user = User::factory()->create();
+    $package = Package::factory()->create();
+
+    $sub = $this->service->create([
+        'user_id' => $user->id,
+        'package_id' => $package->id,
+    ]);
+
+    expect($sub->username)->toStartWith('owl-')
+        ->and(Subscription::where('username', $sub->username)->exists())->toBeTrue();
+});
+
+it('keeps a provided username instead of auto-generating', function (): void {
+    $user = User::factory()->create();
+    $package = Package::factory()->create();
+
+    $sub = $this->service->create([
+        'user_id' => $user->id,
+        'package_id' => $package->id,
+        'username' => 'custom-login',
+    ]);
+
+    expect($sub->username)->toBe('custom-login');
 });
