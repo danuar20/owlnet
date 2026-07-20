@@ -60,16 +60,8 @@ class SubscriptionService
 
         $subscription = $this->subscriptions->create($data);
 
-        // Provision RADIUS immediately so the user exists in radcheck on creation.
-        if ($subscription->username !== null && $subscription->username !== '') {
-            ProvisionRadiusJob::dispatch(
-                $subscription->id,
-                $subscription->username,
-                $subscription->password ?? $subscription->username,
-                $subscription->package?->radius_profile,
-                $subscription->package?->rateLimit()
-            );
-        }
+        // NOTE: RADIUS (radcheck) is provisioned on activate(), not here, so a
+        // pending subscription does not yet exist in FreeRADIUS until activated.
 
         return $subscription;
     }

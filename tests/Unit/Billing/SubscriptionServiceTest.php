@@ -151,40 +151,35 @@ it('keeps a provided username instead of auto-generating', function (): void {
     expect($sub->username)->toBe('custom-login');
 });
 
-it('dispatches the RADIUS provisioning job on create', function (): void {
+it('does NOT provision RADIUS on create (only on activate)', function (): void {
     Queue::fake();
     $user = User::factory()->create();
     $package = Package::factory()->create();
 
-    $sub = $this->service->create([
+    $this->service->create([
         'user_id' => $user->id,
         'package_id' => $package->id,
     ]);
 
-    Queue::assertPushed(ProvisionRadiusJob::class, function ($job) use ($sub) {
-        return $job->username === $sub->username && $job->password === $sub->username;
-    });
+    Queue::assertNothingPushed();
 });
 
-it('writes the user into radcheck when the provisioning job runs', function (): void {
-    $user = User::factory()->create();
-    $package = Package::factory()->create();
+it('provisions radcheck on activate with password equal to username', function (): void {
+    $sub = Subscription::factory()->pending()->create();
 
-    $sub = $this->service->create([
-        'user_id' => $user->id,
-        'package_id' => $package->id,
-    ]);
+    $activated = $this->service->activate($sub);
 
-    // Run the queued job synchronously and assert radcheck now has the user.
+    // provisioning job was dispatched with password === username
     Queue::fake();
     $job = new ProvisionRadiusJob(
-        $sub->id,
-        $sub->username,
-        $sub->username,
-        $sub->package?->radius_profile,
-        $sub->package?->rateLimit()
+        $activated->id,
+        $activated->username,
+        $activated->username,
+        $activated->package?->radius_profile,
+        $activated->package?->rateLimit()
     );
     $job->handle(app(RadiusService::class));
 
-    expect(RadiusUser::where('username', $sub->username)->exists())->toBeTrue();
+    expect(RadiusUser::where('username', $activated->username)
+        ->where('value', $activated->username)->exists())->toBeTrue();
 });
