@@ -47,7 +47,7 @@
         <input type="text" class="form-control @error('username') is-invalid @enderror"
                id="username" name="username" value="{{ old('username', $subscription->username) }}"
                placeholder="auto-generated if left empty">
-        <small class="text-muted">Left empty → auto-generated (e.g. owl-7F3K9X).</small>
+        <small class="text-muted">Left empty → auto-generated (e.g. OWL5B9D43D1).</small>
         @error('username') <div class="invalid-feedback">{{ $message }}</div> @enderror
     </div>
 

@@ -53,16 +53,22 @@ class SubscriptionService
             $data['username'] = $this->generateUniqueUsername();
         }
 
+        // When no password is supplied, default it to the (auto-generated) username.
+        if (empty($data['password'])) {
+            $data['password'] = $data['username'];
+        }
+
         return $this->subscriptions->create($data);
     }
 
     /**
-     * Generate a unique RADIUS username (combined text + number), e.g. "owl-7F3K9X".
+     * Generate a unique RADIUS username: "OWL" + 7 uppercase alphanumerics
+     * (text + number), e.g. "OWL5B9D43D1" — 10 characters total.
      */
     public function generateUniqueUsername(): string
     {
         do {
-            $username = 'owl-'.Str::upper(Str::random(6));
+            $username = 'OWL'.Str::upper(Str::random(7));
         } while (Subscription::where('username', $username)->exists());
 
         return $username;

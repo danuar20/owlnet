@@ -46,6 +46,7 @@ class Subscription extends Model
         'package_id',
         'router_id',
         'username',
+        'password',
         'status',
         'started_at',
         'expired_at',

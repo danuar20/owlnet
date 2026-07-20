@@ -118,8 +118,10 @@ it('auto-generates a unique radius username when none is provided', function ():
         'package_id' => $package->id,
     ]);
 
-    expect($sub->username)->toStartWith('owl-')
-        ->and(Subscription::where('username', $sub->username)->exists())->toBeTrue();
+    expect($sub->username)->toStartWith('OWL')
+        ->and(strlen($sub->username))->toBe(10)
+        ->and(Subscription::where('username', $sub->username)->exists())->toBeTrue()
+        ->and($sub->password)->toBe($sub->username);
 });
 
 it('keeps a provided username instead of auto-generating', function (): void {

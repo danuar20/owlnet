@@ -37,6 +37,7 @@ class SubscriptionRequest extends FormRequest
                 'nullable', 'string', 'max:255',
                 Rule::unique(Subscription::class, 'username')->ignore($id)->whereNull('deleted_at'),
             ],
+            'password' => ['nullable', 'string', 'max:255'],
             'status' => ['sometimes', Rule::in(array_column(SubscriptionStatus::cases(), 'value'))],
             'started_at' => ['nullable', 'date'],
             'expired_at' => ['nullable', 'date', 'after_or_equal:started_at'],
