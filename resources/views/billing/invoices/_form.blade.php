@@ -21,11 +21,15 @@
         <select class="form-select" id="subscription_id" name="subscription_id">
             <option value="">— none —</option>
             @foreach ($subscriptions as $s)
-                <option value="{{ $s->id }}" @selected(old('subscription_id', $invoice->subscription_id) === $s->id)>
+                <option value="{{ $s->id }}"
+                        data-price="{{ $s->price ?: ($s->package?->price ?: 0) }}"
+                        data-label="{{ $s->package?->name ?: 'Subscription' }}"
+                        @selected(old('subscription_id', $invoice->subscription_id) === $s->id)>
                     {{ $s->user->name ?? 'Sub' }} ({{ $s->package->name ?? '—' }})
                 </option>
             @endforeach
         </select>
+        <small class="text-muted">Selecting a subscription auto-fills a line item with its price.</small>
     </div>
 
     <div class="col-md-4">
@@ -104,24 +108,59 @@
 @push('scripts')
 <script>
     (function () {
-        let idx = document.querySelectorAll('.item-row').length;
         const wrap = document.getElementById('item-rows');
+        let idx = document.querySelectorAll('.item-row').length;
+
+        function rowHtml(i, desc = '', qty = 1, price = '') {
+            return `
+                <div class="row g-2 mb-2 item-row">
+                    <div class="col-5"><input type="text" class="form-control" name="items[${i}][description]" value="${desc}" placeholder="Description"></div>
+                    <div class="col-2"><input type="number" class="form-control" name="items[${i}][quantity]" min="1" value="${qty}"></div>
+                    <div class="col-4"><input type="number" step="0.01" min="0" class="form-control unit-price" name="items[${i}][unit_price]" value="${price}" placeholder="Unit price"></div>
+                    <div class="col-1"><button type="button" class="btn btn-outline-danger btn-sm remove-row">×</button></div>
+                </div>`;
+        }
+
         document.getElementById('add-item').addEventListener('click', function () {
-            const row = document.createElement('div');
-            row.className = 'row g-2 mb-2 item-row';
-            row.innerHTML = `
-                <div class="col-5"><input type="text" class="form-control" name="items[${idx}][description]" placeholder="Description"></div>
-                <div class="col-2"><input type="number" class="form-control" name="items[${idx}][quantity]" min="1" value="1"></div>
-                <div class="col-4"><input type="number" step="0.01" min="0" class="form-control" name="items[${idx}][unit_price]" placeholder="Unit price"></div>
-                <div class="col-1"><button type="button" class="btn btn-outline-danger btn-sm remove-row">×</button></div>`;
-            wrap.appendChild(row);
+            wrap.insertAdjacentHTML('beforeend', rowHtml(idx));
             idx++;
         });
+
         wrap.addEventListener('click', function (e) {
             if (e.target.classList.contains('remove-row')) {
                 e.target.closest('.item-row').remove();
             }
         });
+
+        // Selecting a subscription auto-fills the first line item with its price.
+        const subSelect = document.getElementById('subscription_id');
+        subSelect.addEventListener('change', function () {
+            const opt = subSelect.options[subSelect.selectedIndex];
+            const price = opt.getAttribute('data-price') || '';
+            const label = opt.getAttribute('data-label') || 'Subscription';
+            if (! price) {
+                return;
+            }
+            let first = wrap.querySelector('.item-row');
+            if (! first) {
+                wrap.insertAdjacentHTML('beforeend', rowHtml(idx, label, 1, price));
+                idx++;
+            } else {
+                first.querySelector('input[name$="[description]"]').value = label;
+                first.querySelector('.unit-price').value = price;
+                const q = first.querySelector('input[name$="[quantity]"]');
+                if (! q.value) {
+                    q.value = 1;
+                }
+            }
+        });
+
+        // On create (no existing items), start with one empty row so the
+        // price field is visible and always submitted.
+        if (idx === 0) {
+            wrap.insertAdjacentHTML('beforeend', rowHtml(0));
+            idx = 1;
+        }
     })();
 </script>
 @endpush

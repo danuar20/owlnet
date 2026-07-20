@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Enums\InvoiceStatus;
 use App\Models\Billing\InvoiceItem;
 use App\Models\Billing\Payment;
+use App\Models\Billing\Subscription;
 use App\Models\Billing\User;
 use App\Models\User as StaffUser;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -52,6 +53,27 @@ it('creates an invoice with items', function (): void {
     expect($inv->items)->toHaveCount(1)
         ->and($inv->subtotal)->toBe('200000.00')
         ->and($inv->amount)->toBe('220000.00'); // +10% tax
+});
+
+it('auto-fills line item price from the selected subscription', function (): void {
+    $user = User::factory()->create();
+    $sub = Subscription::factory()->create();
+    $expectedPrice = (float) ($sub->price ?: $sub->package?->price ?: 0);
+
+    $this->actingAs(staff())
+        ->post(route('invoices.store'), [
+            'user_id' => $user->id,
+            'subscription_id' => $sub->id,
+            'items' => [
+                ['description' => $sub->package?->name ?: 'Subscription', 'quantity' => 1, 'unit_price' => $expectedPrice],
+            ],
+        ])
+        ->assertRedirect();
+
+    $inv = Payment::orderByDesc('created_at')->first();
+    expect($inv->subscription_id)->toBe($sub->id)
+        ->and($inv->subtotal)->toBe(number_format($expectedPrice, 2, '.', ''))
+        ->and((float) $inv->amount)->toBe($expectedPrice);
 });
 
 it('validates required user_id on create', function (): void {
