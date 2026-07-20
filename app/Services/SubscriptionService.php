@@ -105,9 +105,12 @@ class SubscriptionService
     {
         return DB::transaction(function () use ($subscription, $input, $changedBy): Subscription {
             $username = $input['username'] ?? $subscription->username;
-            $password = $input['password'] ?? null;
+            // RADIUS password must match the username (per policy). Fall back to
+            // the stored password, then to the username itself.
+            $password = $input['password'] ?? $subscription->password ?? $username;
 
             $subscription->username = $username;
+            $subscription->password = $password;
             $subscription->status = SubscriptionStatus::ACTIVE;
             $subscription->started_at = $input['started_at'] ?? now();
             $subscription->expired_at = $input['expired_at']
@@ -117,7 +120,7 @@ class SubscriptionService
 
             $this->recordHistory($subscription, SubscriptionStatus::ACTIVE, 'activate', $changedBy);
 
-            if ($username !== null && $username !== '' && $password !== null) {
+            if ($username !== null && $username !== '') {
                 ProvisionRadiusJob::dispatch(
                     $subscription->id,
                     $username,
@@ -177,7 +180,7 @@ class SubscriptionService
                 ProvisionRadiusJob::dispatch(
                     $subscription->id,
                     $subscription->username,
-                    $input['password'] ?? (string) Str::random(12),
+                    $input['password'] ?? $subscription->password ?? $subscription->username,
                     $subscription->package?->radius_profile,
                     $subscription->package?->rateLimit()
                 );

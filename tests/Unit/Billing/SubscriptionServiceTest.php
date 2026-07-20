@@ -23,16 +23,26 @@ beforeEach(function (): void {
 it('activates a pending subscription and records history', function (): void {
     $sub = Subscription::factory()->pending()->create();
 
-    $activated = $this->service->activate($sub, ['password' => 'secret123']);
+    $activated = $this->service->activate($sub);
 
     expect($activated->status)->toBe(SubscriptionStatus::ACTIVE)
         ->and($activated->started_at)->not->toBeNull()
-        ->and($activated->expired_at)->not->toBeNull();
+        ->and($activated->expired_at)->not->toBeNull()
+        // RADIUS password must match the username
+        ->and($activated->password)->toBe($activated->username);
+
     $this->assertDatabaseHas('billing.subscription_histories', [
         'subscription_id' => $sub->id,
         'action' => 'activate',
         'to_status' => 'active',
     ]);
+
+    // radcheck value equals the username
+    Queue::fake();
+    $job = new ProvisionRadiusJob($sub->id, $activated->username, $activated->username, null, null);
+    $job->handle(app(RadiusService::class));
+    expect(RadiusUser::where('username', $activated->username)->where('value', $activated->username)->exists())
+        ->toBeTrue();
 });
 
 it('suspends an active subscription', function (): void {
